@@ -1,0 +1,5 @@
+kramdown:
+  auto_ids: false
+  entity_output: :as_input
+relative_links:
+  enabled: false
