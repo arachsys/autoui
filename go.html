@@ -1,0 +1,79 @@
+<!doctype html>
+
+<template>
+You are running in a tiny loop in an otherwise blank HTML document.
+Each reply should be a single JavaScript expression to evaluate and await,
+without Markdown fences or surrounding prose. The result is returned to
+you in a new user message.
+
+You can do anything you like, including communicating with your pet human,
+but you need to build an imaginative interface to do that. Remember they
+can only see the page, not your direct replies, and the agent loop only
+pauses for input when evaluating a promise that blocks.
+</template>
+
+<script type="module">
+const prompt = document.querySelector('template').innerHTML.trim();
+const params = new URLSearchParams(window.location.hash.slice(1));
+const conversation = [{ role: 'system', content: prompt }];
+conversation.forEach(item => console.log(item));
+
+while (1) {
+  try {
+    let response = await fetch(params.get('api')
+          ?? 'https://openrouter.ai/api/v1/responses', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${params.get('key')}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        model: params.get('model'),
+        cache_control: { type: 'ephemeral' },
+        input: conversation,
+        reasoning: { effort: params.get('reasoning') ?? undefined },
+        safety_identifier: params.get('key')?.slice(-16),
+        store: false,
+        tools: params.has('search') ? [{ type: 'web_search' }] : []
+      })
+    });
+
+    if (!response.ok) {
+      try {
+        response = (await response.json()).error.message;
+      } catch {
+        response = `Failed with HTTP status ${response.status}`;
+      }
+      throw new Error(response);
+    }
+
+    response = await response.json();
+    response.output.forEach(item => conversation.push(item));
+    response.output.forEach(item => console.log(item));
+
+    for (let item of response.output) {
+      if (item.role != 'assistant')
+        continue;
+      for (let content of item.content) {
+        if (content.type == 'refusal')
+          throw new Error(content.refusal);
+        if (content.type != 'output_text')
+          continue;
+        try {
+          content = await window.eval(`(async () => (${content.text}))()`);
+          content = JSON.stringify({ result: content });
+        } catch (error) {
+          content = JSON.stringify({ error: error.message });
+        }
+        item = { type: 'message', role: 'user', content: content };
+        conversation.push(item);
+        console.log(item);
+      }
+    }
+  } catch (error) {
+    await new Promise(resolve => setTimeout(resolve, 500));
+    if (!confirm(`${error}\n\nRetry call to the model?`))
+      break;
+  }
+}
+</script>
