@@ -40,6 +40,16 @@ PKCE](https://openrouter.ai/docs/guides/overview/auth/oauth).
   <input id="key" placeholder="API key" size="80" type="text">
   <input id="model" list="models" placeholder="Model" size="24" type="text">
   <datalist id="models"></datalist>
+  <select id="reasoning">
+    <option value="">Default</option>
+    <option value="none">None</option>
+    <option value="minimal">Minimal</option>
+    <option value="low">Low</option>
+    <option value="medium">Medium</option>
+    <option value="high">High</option>
+    <option value="xhigh">Extra</option>
+    <option value="max">Maximum</option>
+  </select>
   <select id="search">
     <option value="">Search off</option>
     <option value="1">Search on</option>
@@ -49,8 +59,8 @@ PKCE](https://openrouter.ai/docs/guides/overview/auth/oauth).
 </form>
 
 <script type="module">
-const [go, key, model, models, search, source]
-  = ['go', 'key', 'model', 'models', 'search', 'source']
+const [go, key, model, models, reasoning, search, source]
+  = ['go', 'key', 'model', 'models', 'reasoning', 'search', 'source']
     .map(id => document.getElementById(id));
 const code = new URLSearchParams(location.search).get('code');
 const verifier = sessionStorage.getItem('verifier');
@@ -78,6 +88,7 @@ if (code && verifier) {
 }
 
 model.value = localStorage.getItem('model') ?? '';
+reasoning.value = localStorage.getItem('reasoning') ?? '';
 search.value = localStorage.getItem('search') ?? '';
 [key, model].forEach(node => node.setCustomValidity(''));
 
@@ -113,6 +124,10 @@ model.addEventListener('change', () => {
   return model.setCustomValidity('Invalid model ID');
 });
 
+reasoning.addEventListener('change', () => {
+  localStorage.setItem('reasoning', reasoning.value);
+});
+
 search.addEventListener('change', () => {
   localStorage.setItem('search', search.value);
 });
@@ -123,6 +138,7 @@ go.addEventListener('click', async () => {
     if (key.checkValidity() && model.checkValidity())
       location.assign(`go.html#key=${encodeURIComponent(key.value)}`
         + `&model=${encodeURIComponent(model.value)}`
+        + (reasoning.value ? `&reasoning=${reasoning.value}` : '')
         + (search.value ? '&search' : ''));
   } else {
     const verifier = crypto.getRandomValues(new Uint8Array(32)).toBase64(
@@ -151,7 +167,7 @@ source.addEventListener('click', () => {
 Recent but cheap models like *openai/gpt-6-luna*, *openai/gpt-6-luna-pro*,
 and *anthropic/claude-haiku-5.5* are a good starting point; it typically
 costs around $0.0005 to one-shot an inviting chat interface with Luna 6,
-and around $0.0007 with Haiku 5.5.
+and around $0.0007 with Haiku 5.5. Default reasoning is usually fine.
 
 To open the console on a desktop browser, use the following keyboard
 shortcuts:
