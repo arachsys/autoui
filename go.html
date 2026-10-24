@@ -13,8 +13,9 @@ pauses for input when evaluating a promise that blocks.
 </template>
 
 <script type="module">
-const prompt = document.querySelector('template').innerHTML.trim();
 const params = new URLSearchParams(window.location.hash.slice(1));
+const prompt = sessionStorage.getItem('autoui')
+  || document.querySelector('template').innerHTML.trim();
 const conversation = [{ role: 'system', content: prompt }];
 conversation.forEach(item => console.log(item));
 
