@@ -34,6 +34,19 @@ PKCE](https://openrouter.ai/docs/guides/overview/auth/oauth).
     }
   }
 }
+
+#go:active, body:not(:has(div[hidden])) #toggle {
+  background: #def;
+}
+
+#prompt {
+  border: 2px solid #9bf;
+  border-radius: 0.5em;
+  box-sizing: border-box;
+  font-family: ui-monospace, monospace;
+  padding: 0.5em;
+  width: 100%
+}
 </style>
 
 <form id="launcher">
@@ -54,13 +67,19 @@ PKCE](https://openrouter.ai/docs/guides/overview/auth/oauth).
     <option value="">Search off</option>
     <option value="1">Search on</option>
   </select>
+  <button id="toggle" type="button">Prompt</button>
   <button id="go" type="button">Go</button>
 </form>
 
+<div hidden>
+  <h2>Prompt</h2>
+  <div id="prompt" contenteditable="plaintext-only"></div>
+</div>
+
 <script type="module">
-const [go, key, model, models, reasoning, search]
-  = ['go', 'key', 'model', 'models', 'reasoning', 'search']
-    .map(id => document.getElementById(id));
+const [go, key, model, models, prompt, reasoning, search, toggle]
+    = 'go, key, model, models, prompt, reasoning, search, toggle'
+      .split(', ').map(id => document.getElementById(id));
 const code = new URLSearchParams(location.search).get('code');
 const verifier = sessionStorage.getItem('verifier');
 
@@ -128,6 +147,18 @@ search.addEventListener('change', () => {
   localStorage.setItem('search', search.value);
 });
 
+toggle.addEventListener('click', async () => {
+  prompt.parentNode.hidden = !prompt.parentNode.hidden;
+  if (!prompt.innerText.trim()) {
+    const response = await fetch('go');
+    if (response.ok) {
+      const text = await response.text();
+      const tree = await new DOMParser().parseFromString(text, 'text/html');
+      prompt.innerText = tree.querySelector('template').innerHTML.trim();
+    }
+  }
+});
+
 go.addEventListener('click', async () => {
   if (!key.value) {
     const verifier = crypto.getRandomValues(new Uint8Array(32)).toBase64(
@@ -150,6 +181,7 @@ go.addEventListener('click', async () => {
     location.assign('go#' + new URLSearchParams([
       ['key', key.value],
       ['model', model.value],
+      ['prompt', !prompt.parentNode.hidden && prompt.innerText.trim()],
       ['reasoning', reasoning.value],
       ['search', search.value]
     ].filter(([key, value]) => value)));
@@ -172,7 +204,7 @@ shortcuts:
 | Firefox  | &#8963;&#8679;K | &#8997;&#8984;K | &#8963;&#8679;K |
 | Safari   | &mdash;         | &#8997;&#8984;C | &mdash;         |
 
-With Safari, you might need to enable *Show features for web developers*
+On Safari, you might need to enable *Show features for web developers*
 first. Other browsers are less patronising. The demo works fine on
 mobile devices too, but you can't easily watch the console to monitor
 progress there.
@@ -184,12 +216,12 @@ drops or fails, or if any other error occurs, a dialog box reports this.
 Reloading the page restarts generation from scratch, so if you get a
 boring first turn, it's worth retrying.
 
-Most modern models quickly understand the scenario, and correctly block
-awaiting user input where appropriate. There is a small risk of a confused
-model calling the API in a busy loop, so it's best to limit the amount of
-credit available to the key you use, and keep an eye on activity in the
-console at first. After a model has successfully waited, it's unlikely
-to end up spinning on a later turn.
+With the default prompt, most modern models quickly understand the
+scenario, and correctly block awaiting user input where appropriate.
+There is a small risk of a confused model calling the API in a busy loop,
+so it's best to limit the amount of credit available to the key you use,
+and keep an eye on activity in the console at first. After a model has
+successfully waited, it's unlikely to end up spinning on a later turn.
 
 Once you can communicate, you can say things like "Let's play Doom!"
 or "How about a 3D simulation of a galaxy?" or "Can you build a musical
@@ -201,12 +233,12 @@ Presumably this is a false positive, but who knows how far these hysterical
 people have stretched their fear of dangerous thoughts?
 
 You don't need to use the client-side form above to run the demo. It's a
-simple static page and just expects `key` and `model` as URI-encoded
-parameters in the hash part of the URL. Usually neither the key nor the
-model slug requires escaping. You can also specify `api` to override
-the responses endpoint, `reasoning` to set the reasoning effort level,
-and `search` to enable the native web search tool. The page runs fine
-downloaded to a local file.
+simple static page that runs fine downloaded to a local file, and just
+expects `key` and `model` as URI-encoded parameters in the hash part of
+its URL. Usually neither the key nor the model slug requires escaping.
+You can also specify `api` to override the responses endpoint, `prompt`
+to change the system prompt, `reasoning` to set the reasoning effort
+level, and `search` to enable the native web search tool.
 
 An early prototype exposed `eval()` as a custom tool, but this encouraged
 smaller models to address the user with assistant replies even when
