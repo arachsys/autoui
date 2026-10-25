@@ -129,14 +129,7 @@ search.addEventListener('change', () => {
 });
 
 go.addEventListener('click', async () => {
-  if (key.value) {
-    [key, model].forEach(node => node.dispatchEvent(new Event('change')));
-    if (key.checkValidity() && model.checkValidity())
-      location.assign(`go.html#key=${encodeURIComponent(key.value)}`
-        + `&model=${encodeURIComponent(model.value)}`
-        + (reasoning.value ? `&reasoning=${reasoning.value}` : '')
-        + (search.value ? '&search' : ''));
-  } else {
+  if (!key.value) {
     const verifier = crypto.getRandomValues(new Uint8Array(32)).toBase64(
       { alphabet: 'base64url', omitPadding: true });
     const challenge = new Uint8Array(await crypto.subtle.digest('SHA-256',
@@ -149,8 +142,17 @@ go.addEventListener('click', async () => {
     url.searchParams.set('code_challenge', challenge);
     url.searchParams.set('code_challenge_method', 'S256');
     url.searchParams.set('key_label', 'AutoUI');
-    location.assign(url);
+    return location.assign(url);
   }
+
+  [key, model].forEach(node => node.dispatchEvent(new Event('change')));
+  if (key.checkValidity() && model.checkValidity())
+    location.assign('go#' + new URLSearchParams([
+      ['key', key.value],
+      ['model', model.value],
+      ['reasoning', reasoning.value],
+      ['search', search.value]
+    ].filter(([key, value]) => value)));
 });
 </script>
 
