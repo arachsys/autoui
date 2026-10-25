@@ -88,20 +88,20 @@ reasoning.value = localStorage.getItem('reasoning') ?? '';
 search.value = localStorage.getItem('search') ?? '';
 [key, model].forEach(node => node.setCustomValidity(''));
 
-try {
+void (async () => {
   const response = await fetch('https://openrouter.ai/api/v1/models');
   if (response.ok) {
     const { data } = await response.json();
     models.replaceChildren(...data.map(({ id }) => id).sort()
       .filter(id => !id.endsWith(':batch')).map(id => new Option(id)));
   }
-} catch {}
+})().catch(() => {});
 
 key.addEventListener('change', async () => {
   if (key.value.startsWith('sk-or-')) {
     try {
       const response = await fetch('https://openrouter.ai/api/v1/auth/key', {
-        headers: { Authorization: `Bearer ${key.value}`, }
+        headers: { Authorization: `Bearer ${key.value}` }
       });
       if (response.ok) {
         localStorage.setItem('key', key.value);
@@ -113,11 +113,11 @@ key.addEventListener('change', async () => {
 });
 
 model.addEventListener('change', () => {
-  if ([...models.options].some(option => option.value == model.value)) {
-    localStorage.setItem('model', model.value);
-    return model.setCustomValidity('');
-  }
-  return model.setCustomValidity('Invalid model ID');
+  if (models.options.length > 0
+        && [...models.options].every(item => item.value != model.value))
+    return model.setCustomValidity('Invalid model ID');
+  localStorage.setItem('model', model.value);
+  return model.setCustomValidity('');
 });
 
 reasoning.addEventListener('change', () => {
