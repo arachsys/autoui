@@ -13,28 +13,31 @@ pauses for input when evaluating a promise that blocks.
 </template>
 
 <script type="module">
-const prompt = document.querySelector('template').innerHTML.trim();
-const params = new URLSearchParams(window.location.hash.slice(1));
-const conversation = [{ role: 'system', content: prompt }];
+const config = {
+  api: 'https://openrouter.ai/api/v1/responses',
+  prompt: document.querySelector('template').innerHTML.trim(),
+  ...Object.fromEntries(new URLSearchParams(location.hash.slice(1)))
+};
+
+const conversation = [{ role: 'system', content: config.prompt }];
 conversation.forEach(item => console.log(item));
 
 while (1) {
   try {
-    let response = await fetch(params.get('api')
-          ?? 'https://openrouter.ai/api/v1/responses', {
+    let response = await fetch(config.api, {
       method: 'POST',
       headers: {
-        'Authorization': `Bearer ${params.get('key')}`,
+        'Authorization': `Bearer ${config.key}`,
         'Content-Type': 'application/json'
       },
       body: JSON.stringify({
-        model: params.get('model'),
+        model: config.model,
         cache_control: { type: 'ephemeral' },
         input: conversation,
-        reasoning: { effort: params.get('reasoning') ?? undefined },
-        safety_identifier: params.get('key')?.slice(-16),
+        reasoning: { effort: config.reasoning },
+        safety_identifier: config.key?.slice(-16),
         store: false,
-        tools: params.has('search') ? [{ type: 'web_search' }] : []
+        tools: 'search' in config ? [{ type: 'web_search' }] : []
       })
     });
 
