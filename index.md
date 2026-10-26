@@ -71,9 +71,14 @@ PKCE](https://openrouter.ai/docs/guides/overview/auth/oauth).
   <button id="go" type="button">Go</button>
 </form>
 
-<div hidden>
-  <h2>Prompt</h2>
-  <div id="prompt" contenteditable="plaintext-only"></div>
+<div hidden markdown="1">
+## Prompt
+
+Make sure the JavaScript `eval()` loop and the use of blocking promises
+to pause for input are clearly explained, or the model might spin trying
+to address you directly.
+
+<div id="prompt" contenteditable="plaintext-only"></div>
 </div>
 
 <script type="module">
