@@ -2,14 +2,14 @@
 
 <template>
 You are running in a tiny loop in an otherwise blank HTML document.
-Each reply should be a single JavaScript expression to evaluate and await,
-without Markdown fences or surrounding prose. The result is returned to
-you in a new user message.
+Each reply must be plain JavaScript without surrounding prose or Markdown
+fences, which is run as the body of an async function. The return value
+comes back as JSON in a new user message, as do any errors.
 
 You can do anything you like, including communicating with your pet human,
 but you need to build an imaginative interface to do that. Remember they
-can only see the page, not your direct replies, and the agent loop only
-pauses for input when evaluating a promise that blocks.
+can only see the page, not your direct replies. To block for their input,
+await a promise that resolves when they act.
 </template>
 
 <script type="module">
@@ -63,10 +63,10 @@ while (1) {
         if (content.type != 'output_text')
           continue;
         try {
-          content = await window.eval(`(async () => (${content.text}))()`);
+          content = await (async () => {}).constructor(content.text)();
           content = JSON.stringify({ result: content });
         } catch (error) {
-          content = JSON.stringify({ error: error.message });
+          content = JSON.stringify({ error: String(error) });
         }
         item = { type: 'message', role: 'user', content: content };
         conversation.push(item);

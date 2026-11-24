@@ -2,11 +2,10 @@
 
 *The DOMancer: summon a user interface from an empty page*
 
-This demo runs an [OpenRouter](https://openrouter.ai/) model in a tiny
-JavaScript loop on a blank HTML page, giving it only the ability to
-`eval()` expressions. The model figures out the setup, builds a DOM
-interface from scratch to talk to you, and can create other impressive
-graphical HTML toys on the fly.
+This demo runs an [OpenRouter](https://openrouter.ai/) model in a tiny loop
+on a blank HTML page, giving it only the ability to `eval()` JavaScript.
+The model figures out the setup, builds a DOM interface from scratch to
+talk to you, and can create other impressive graphical HTML toys on the fly.
 
 Start by checking out the simple [source code](go.txt), then enter a
 valid API key, choose a model, open the browser console to keep an eye
@@ -195,10 +194,14 @@ go.addEventListener('click', async () => {
 
 ## Notes
 
-Recent but cheap models like *openai/gpt-6-luna*, *openai/gpt-6-luna-pro*,
-and *anthropic/claude-haiku-5.5* are a good starting point; it typically
-costs around $0.0005 to one-shot an inviting chat interface with Luna 6,
-and around $0.0007 with Haiku 5.5. Default reasoning is usually fine.
+Recent but cheap models like *openai/gpt-6-luna*,
+*anthropic/claude-haiku-5.5* or *thinkingmachines/inkling-2-small* are
+a good starting point; it typically costs around $0.0005 to one-shot an
+inviting chat interface with Luna 6, and around $0.0007 with Haiku 5.5
+or Inkling 2 Small. Default reasoning is usually fine.
+
+Even tiny models like *thinkingmachines/inkling-2-mini* (which fits
+comfortably in 32GB of RAM) can successfully drive the harness.
 
 To open the console on a desktop browser, use the following keyboard
 shortcuts:
